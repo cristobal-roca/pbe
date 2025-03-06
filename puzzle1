@@ -3,12 +3,17 @@ import board    #Referencia pins del microcontrolador
 import busio    #Serveix per treballar amb els busos de comunicació, utilizem el mode I2C
 from adafruit_pn532.i2c import PN532_I2C     #importem la classe adient per controlar el PN532 utilitzant I2C
 
-i2c = busio.I2C(board.SCL, board.SDA)     #inicialitzem el bus I2C utilitzant el pin del clock (SCL) i  dades (SDA)                                        
-pn532 = PN532_I2C(i2c, debug=False)       #inicialitzem el lector amnb el debug=false per mes claritat de missatges
+class Rfid:
+	def __init__(self):
 
-pn532.SAM_configuration()                #Configurar la velocidad de lectura a lectura passiva
+    i2c = busio.I2C(board.SCL, board.SDA)     #inicialitzem el bus I2C utilitzant el pin del clock (SCL) i  dades (SDA)                                        
+    pn532 = PN532_I2C(i2c, debug=False)       #inicialitzem el lector amnb el debug=false per mes claritat de missatges
+
+    pn532.SAM_configuration()                #Configurar la velocidad de lectura a lectura passiva
+
+
+def read_uid(self):
 print("Esperant a detectar una targeta NFC....")
-
 while True:                                             #bucle constant per mantenir l'estat de lectura
     uid = pn532.read_passive_target(timeout=1)          #llegeix la targeta i espera 1 segon.
     if uid is None:                                     #cas que no llegeix targeta
@@ -17,9 +22,10 @@ while True:                                             #bucle constant per mant
         continue                                        #retorna a l'inici del bucle
 
     uid_hex = ''.join([f'{i:02X}' for i in uid])        #pasa a hexadecimal de dos digits, el byte 'i' de uid i es guarda amb el join
+    return uid_hex 
+    time.sleep(2)
 
-    print("Targeta detectada")  
-
-    print(f"UID: {uid_hex}")
-
-    time.sleep(2)                                  
+if __name__ == "__main__":
+	rf = Rfid()
+	uid = rf.read_uid()
+	print(f"Targeta detectada: {uid}")
