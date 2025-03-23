@@ -21,11 +21,12 @@ while True:                                             #bucle constant per mant
 
         continue                                        #retorna a l'inici del bucle
 
-    uid_hex = ''.join([f'{i:02X}' for i in uid])        #pasa a hexadecimal de dos digits, el byte 'i' de uid i es guarda amb el join
+    uid_hex = ''.join([f'{i:02X}' for i in uid])      #pasa a hexadecimal de dos digits, el byte 'i' de uid i es guarda amb el join
+    print(f"Targeta detectada: {uid_hex}")
     return uid_hex 
     time.sleep(2)
 
 if __name__ == "__main__":
 	rf = Rfid()
 	uid = rf.read_uid()
-	print(f"Targeta detectada: {uid}")
+	
