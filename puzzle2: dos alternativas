@@ -1,0 +1,100 @@
+//VERSION 1 PYOBJECT
+
+import gi
+import threading
+import time
+from puz1 import Rfid  
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, GLib, Gdk
+
+class RFIDReaderApp(Gtk.Window):
+    def __init__(self):
+        Gtk.Window.__init__(self, title="RFID Reader")
+        self.set_border_width(10)
+        self.set_default_size(400, 200)
+
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.add(vbox)
+
+        self.label = Gtk.Label(label="Escaneja la targeta UPC ")
+        vbox.pack_start(self.label, True, True, 0)
+
+        self.textview = Gtk.TextView()
+        self.textview.set_editable(False)
+        self.textbuffer = self.textview.get_buffer()
+        vbox.pack_start(self.textview, True, True, 0)
+
+        self.nfc_reader = Rfid()
+
+        self.thread = threading.Thread(target=self.read_rfid_thread, daemon=True)
+        self.thread.start()
+
+    def read_rfid_thread(self):
+        while True:
+            self.textview.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1, 0, 0, 1))  # rojo
+            uid_hex = self.nfc_reader.read_uid()  # Lee el UID del lector RFID
+        
+            if uid_hex is not None:
+                self.textbuffer.set_text(f"UID: {uid_hex}")  # Muestra el UID en el TextView
+                self.textview.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 0, 1, 1))  #  azul si el UID encontrado
+
+def main():
+    app = RFIDReaderApp() 
+    app.connect("destroy", Gtk.main_quit)
+    app.show_all()
+    Gtk.main()
+
+if __name__ == "__main__":
+    main()
+
+
+
+//VERSION 2 TKINTER  (ME DA MENOS PROBLEMAS // ALTERNATIVA)
+
+import time
+import threading
+import serial
+import tkinter as tk
+from puz1 import Rfid
+
+
+class RFIDApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("interfaz.py")
+
+        # Label para mostrar el estado o el UID 
+        self.label = tk.Label(root, text="Escaneja la targeta UPC ", width=40, height=4, font=("Verdana", 20), bg="blue", fg="black", bd=2, relief="solid", padx=10, pady=10)
+        self.label.pack(pady=20)
+
+        # Botón para limpiar
+        self.clear_button = tk.Button(root, text="Vale", command=self.clear_label,width =70)
+        self.clear_button.pack()
+
+        self.nfc_reader = Rfid()
+
+        # Iniciar el hilo para leer la tarjeta
+        self.thread = threading.Thread(target=self.read_rfid_thread, daemon=True)
+        self.thread.start()
+
+    def read_rfid_thread(self):
+        """Hilo que lee la tarjeta y actualiza la UI"""
+        while True:
+            uid_hex = self.nfc_reader.read_uid()
+            if uid_hex is not None:
+                self.update_label(f"UID: {uid_hex}")
+            time.sleep(1)
+
+    def update_label(self, info):
+        """Actualizar el Label en el hilo principal"""
+        self.label.config(text=info, bg = "red")
+
+    def clear_label(self):
+        """Limpiar el Label al presionar el botón"""
+        self.label.config(text="Escaneja la targeta UPC", bg = "blue")
+
+# Ejecutar la aplicación
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = RFIDApp(root)
+    root.mainloop()
